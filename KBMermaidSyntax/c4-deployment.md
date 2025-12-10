@@ -12,6 +12,13 @@
 - Usar Node(): "Unknown diagram type".
 - Relaciones a Deployment_Node en lugar de Container.
 
+## Patrones Anti-Error (❌ vs ✅)
+- ❌ `Deployment_Node(edge, "Edge")` sin hijo → ✅ añade al menos un `Container` interno.
+- ❌ Relacionar `Rel(aws, app, ...)` usando nodos → ✅ `Rel(app, db, ...)` relaciona contenedores.
+- ❌ Mezclar `Deployment_Node` y `ContainerDb` sin cerrar llaves → ✅ valida balanceo `{` `}` y anidación clara.
+- ❌ Repetir alias en distintos niveles → ✅ alias únicos por nodo/contendedor.
+- Checklist rápido: cada Deployment_Node tiene hijo, llaves balanceadas, relaciones solo entre Containers/ContainerDb, alias únicos, título opcional al inicio.
+
 ## Ejemplos
 ### Simple
 ```mermaid
@@ -75,8 +82,60 @@ C4Deployment
     Rel(auth_service, postgres_db, "User credentials", "PostgreSQL")
 ```
 
+### Multi-cloud Activo-Activo (Industria: Fintech)
+```mermaid
+C4Deployment
+    title Multi-cloud activo-activo
+    Deployment_Node(aws, "AWS", "Cloud") {
+        Deployment_Node(aws_app, "ECS Fargate", "Cluster") {
+            Container(api_aws, "API", "Node.js", "Pico de carga US")
+        }
+        Deployment_Node(aws_db, "Aurora Global", "PostgreSQL") {
+            ContainerDb(db_aws, "Writer US", "PostgreSQL 15", "Primario US")
+        }
+    }
+    Deployment_Node(gcp, "GCP", "Cloud") {
+        Deployment_Node(gke, "GKE", "Cluster") {
+            Container(api_gcp, "API", "Node.js", "Pico de carga EU")
+        }
+        Deployment_Node(spanner, "Spanner", "DB") {
+            ContainerDb(db_gcp, "Reader EU", "Spanner", "Replica sincronizada")
+        }
+    }
+    Rel(api_aws, db_aws, "Writes", "PSQL")
+    Rel(api_gcp, db_gcp, "Reads", "gRPC")
+    Rel(api_aws, api_gcp, "Health sync", "HTTPS")
+```
+
+### Edge + Cloud para IoT Industrial
+```mermaid
+C4Deployment
+    title Edge + Cloud
+    Deployment_Node(factory, "Factory Edge", "Industrial PC") {
+        Deployment_Node(gateway, "Gateway", "Linux") {
+            Container(collector, "Telemetry Collector", "Go", "MQTT")
+            ContainerDb(ts_cache, "TS Cache", "SQLite", "Buffer local")
+        }
+    }
+    Deployment_Node(cloud, "Cloud", "Azure") {
+        Deployment_Node(iot_hub, "IoT Hub", "PaaS") {
+            Container(iothub, "IoT Hub", "Azure", "Ingesta")
+        }
+        Deployment_Node(streaming, "Stream Analytics", "PaaS") {
+            Container(stream_job, "Stream Job", "SQL streaming", "Detecta anomalías")
+        }
+        Deployment_Node(data, "Data Lake", "ADLS") {
+            ContainerDb(raw, "Raw Zone", "Parquet", "Histórico")
+        }
+    }
+    Rel(collector, iothub, "Publica métricas", "MQTT")
+    Rel(iothub, stream_job, "Eventos", "EventHub")
+    Rel(stream_job, raw, "Persistencia", "Delta Lake")
+```
+
 ## Buenas Prácticas
 - Siempre incluye hijos en Deployment_Node.
 - Usa jerarquía: Cloud > Region > AZ > Server > Container.
 - Del original: Verifica llaves balanceadas; relaciones a Containers no Nodes.
 - Métricas: Capas <5; conexiones seguras 100%.
+- Troubleshooting: revisa alias únicos, balanceo de llaves y que todas las relaciones usen contenedores; valida en Mermaid Live Editor.
