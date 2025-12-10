@@ -9,7 +9,10 @@ C4Context
     Person(alias, "Etiqueta", "Descripción")
     System(alias, "Etiqueta", "Descripción")
     System_Ext(alias, "Etiqueta", "Descripción")
-    Enterprise_Boundary(id, "Nombre") { ... }
+    Enterprise_Boundary(id, "Nombre") {
+        Person(aliasInterno, "Actor interno")
+        System(sistemaInterno, "Sistema interno")
+    }
     Rel(origen, destino, "Relación", "Protocolo")
 ```
 
