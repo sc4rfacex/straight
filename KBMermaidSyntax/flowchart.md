@@ -40,6 +40,13 @@ Usa `subgraph [Título]` para agrupar, con `end` para cerrar.
 - Especiales como "o" o "x" primero: Añade espacio o capitaliza.
 - Del PDF: Subgraphs sin end; iconos no cerrados.
 
+## Patrones Anti-Error (❌ vs ✅)
+- ❌ `flowchart TD\nA-->B` (sin espacios, difícil de leer) → ✅ `flowchart TD\n    A --> B` (sangría consistente).
+- ❌ `A-->B-->` (flecha huérfana) → ✅ `A --> B` (si no hay destino, convierte en nota o elimina).
+- ❌ `subgraph Zona` sin `end` → ✅ `subgraph Zona\n    ...\nend` (valida subgrafos balanceados).
+- ❌ `A -- Texto B` (texto sin delimitadores) → ✅ `A -- Texto --> B` (usa `-->` o `---`).
+- Checklist rápido: dirección definida, llaves/corchetes balanceados, subgrafos cerrados, flechas con origen y destino existentes.
+
 ## Ejemplos
 ### Simple
 ```mermaid
@@ -80,6 +87,75 @@ flowchart TB
     %% Rendimiento: Minimiza ramificaciones; seguridad: Incluye firewalls.
 ```
 
+### Operaciones - Respuesta a incidentes (Industria: Observabilidad)
+```mermaid
+flowchart LR
+    subgraph Alerting
+        A[Alerta de CPU Alta]
+        B[PagerDuty]
+    end
+    subgraph Respuesta
+        C{¿Autoescalar disponible?}
+        D[Crear Ticket]
+        E[Escalar Pods]
+        F[Ejecutar Runbook]
+    end
+    subgraph Postmortem
+        G[Recolección Logs]
+        H[Análisis RCA]
+    end
+    A --> B --> C
+    C -->|Sí| E --> F
+    C -->|No| D --> F --> G --> H
+    style C fill:#fff3cd,stroke:#f0ad4e
+    style H fill:#d9edf7,stroke:#31708f
+```
+
+### Retail Omnicanal (Industria: E-commerce)
+```mermaid
+flowchart TD
+    subgraph Canales
+        Web[Checkout Web]
+        POS[Punto de Venta]
+        App[App Móvil]
+    end
+    subgraph Procesos
+        P1{¿Stock disponible?}
+        P2[Separar inventario]
+        P3[Confirmar pago]
+        P4[Orquestar envío]
+    end
+    subgraph Logística
+        L1[Almacén Principal]
+        L2[Dark Store]
+        L3[Transportista]
+    end
+    Web --> P1
+    POS --> P1
+    App --> P1
+    P1 -->|Sí| P2 --> P3 --> P4 --> L3
+    P1 -->|No| L2
+    L1 -.-> P2
+    L2 -.-> P4
+    style P1 fill:#fff3cd,stroke:#f0ad4e
+    style P4 fill:#d9edf7,stroke:#31708f
+```
+
+### Salud - Gestión de citas (Industria: Healthcare)
+```mermaid
+flowchart LR
+    Paciente([Paciente]) --> Portal[Portal Web]
+    Portal --> Cita{¿Especialista disponible?}
+    Cita -->|Sí| Agenda[Agenda cita]
+    Cita -->|No| Lista[Lista de espera]
+    Agenda --> Recordatorio[SMS/Email Recordatorio]
+    Recordatorio --> Consulta[Consulta Médica]
+    Consulta --> Pago[Procesar pago]
+    Pago --> Encuesta[Encuesta de satisfacción]
+    style Cita fill:#fff3cd,stroke:#f0ad4e
+    style Pago fill:#dff0d8,stroke:#3c763d
+```
+
 ## Buenas Prácticas
 
 - Comienza simple, añade complejidad si necesario.
@@ -88,3 +164,4 @@ flowchart TB
 - Verifica conexiones lógicas.
 - Usa subgraphs para agrupar componentes; considera audiencia para detalle.
 - Métricas: <10 nodos para simplicidad; complejidad ciclomatica <5.
+- Troubleshooting: valida con Mermaid Live Editor, busca flechas huérfanas y subgrafos sin `end`, confirma que cada decisión tiene salidas etiquetadas.
