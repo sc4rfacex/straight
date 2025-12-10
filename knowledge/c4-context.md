@@ -5,7 +5,7 @@ Nivel 1 del modelo C4. Describe actores y sistemas involucrados, sin detallar co
 ## Sintaxis completa
 ```mermaid
 C4Context
-    title [Título opcional]
+    title Título opcional
     Person(alias, "Etiqueta", "Descripción")
     System(alias, "Etiqueta", "Descripción")
     System_Ext(alias, "Etiqueta", "Descripción")
