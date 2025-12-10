@@ -13,7 +13,7 @@ C4Context
         Person(aliasInterno, "Actor interno")
         System(sistemaInterno, "Sistema interno")
     }
-    Rel(alias, alias, "Relación", "Protocolo")
+    Rel(origen, destino, "Relación", "Protocolo")
 ```
 
 ### Errores frecuentes
